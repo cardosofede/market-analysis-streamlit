@@ -10,27 +10,6 @@ def get_volume_spreads_df(exchanges):
     volume_spreads_df = data_provider.get_volume_spreads_df_by_exchange_list(exchanges)
     return volume_spreads_df
 
-def create_spreads_filters(df):
-    miner_coins_filter = st.sidebar.checkbox("Miner Coins")
-    if miener_coins_filter == False:
-        coin_filter = st.sidebar.multiselect("Coins:", df.base.unique().tolist())
-        coins_filters = (df.base_quote.isin(coin_filter)) if len(coin_filter) > 0 else True
-    else:
-        coin_filter = ["ETHUSDT", "BTCUSDT", "USDCUSDT", "LINKUSDT", "WBTCBTC", "DOTUSDT", "VETUSDT", "ADAUSDT", "LTCBTC", "ETHBTC"]
-        coins_filters = df.trading_pair.isin(coin_filter)
-
-    exchange_filter = st.sidebar.multiselect("Exchanges:", df.exchange.unique().tolist())
-    exchanges_filters = (df.exchange.isin(exchange_filter)) if len(exchange_filter) > 0 else True
-    
-    spread_filter = st.sidebar.slider(
-        "Spreads:",
-        min_value=float(df.bid_ask_spread_percentage.min()), 
-        max_value=float(df.bid_ask_spread_percentage.max()),
-        value=(0.01, 0.8))
-    
-    spreads_filters = (df.bid_ask_spread_percentage < spread_filter[1]) & (df.bid_ask_spread_percentage > spread_filter[0])
-    return (spreads_filters & coins_filters & exchanges_filters)
-
 def get_exchange_list_filtered(add_miner_exchanges, extra_exchanges, number_of_exchanges, exchange_volume_filter):
     data_provider = DataProvider()
     exchanges = data_provider.exchanges_df
@@ -50,21 +29,18 @@ st.set_page_config(layout='wide')
 st.title("Market Analysis")
 st.write("---")
 st.code("This dashboard is using pycoingecko to retrieve information of volume and spread of different markets.")
-
 st.sidebar.write("# Data filters 🏷")
 st.sidebar.write("")
 data_provider = DataProvider()
-st.sidebar.write("### Miner filters 🦅")
-miner_token_filter = st.sidebar.checkbox("Miner Token Filter", True)
+volume_spreads_df = None
 
+st.write("")
+st.sidebar.write("### Exchange filters 🪙")
 with st.sidebar.form(key="market_analysis_filter"):
     exchanges = data_provider.exchanges_df
-    st.write("")
-    st.write("### Exchange filters 🪙")
     add_miner_exchanges = st.checkbox("Add Miner Exchanges", True)
     extra_exchanges = st.multiselect("Extra exchanges to add: ", exchanges["id"])
-    st.write("---")
-
+    st.write("")
     st.write("### Add more exchanges using filters")
     exchange_volume_filter = st.slider("Trade volume BTC filter: ",
                               min_value=exchanges.trade_volume_24h_btc.min().item(),
@@ -76,8 +52,12 @@ with st.sidebar.form(key="market_analysis_filter"):
     with c2:
         button = st.form_submit_button("Show me data")
 
-exchange_list_filtered = get_exchange_list_filtered(add_miner_exchanges, extra_exchanges, number_of_exchanges, exchange_volume_filter)
-volume_spreads_df = get_volume_spreads_df(exchange_list_filtered)
+st.sidebar.write("### Token filters 🦅")
+miner_token_filter = st.sidebar.checkbox("Miner Token Filter", True)
+
+if volume_spreads_df is None or button:
+    exchange_list_filtered = get_exchange_list_filtered(add_miner_exchanges, extra_exchanges, number_of_exchanges, exchange_volume_filter)
+    volume_spreads_df = get_volume_spreads_df(exchange_list_filtered)
 
 if miner_token_filter:
     miner_tokens = data_provider.get_miner_base_list()
@@ -85,21 +65,20 @@ if miner_token_filter:
 
 spreads = px.scatter(
             volume_spreads_df,
-            y="bid_ask_spread_percentage",
             x="volume",
+            y="bid_ask_spread_percentage",
             color="trading_pair",
             log_x=True,
             log_y=True,
             facet_col="exchange",
             facet_col_wrap=3,
-            hover_data=["base", "target"],
             width=1200,
-            height=800,
+            height=1200,
             template="plotly_dark",
             title="Spread and Volume Chart",
             labels={
-                "x":'Volume',
-                'y':'Spread'
+                "volume": 'Volume (USD)',
+                'bid_ask_spread_percentage': 'Bid Ask Spread (%)'
             })
 
 st.plotly_chart(spreads)
