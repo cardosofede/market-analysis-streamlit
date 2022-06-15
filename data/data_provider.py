@@ -1,18 +1,17 @@
-from utils.coingecko_utils import CoinGeckoUtils
-from utils.miner_utils import MinerUtils
+import pandas as pd
 
 
 class DataProvider:
-    def __init__(self):
-        self._miner_utils = MinerUtils()
-        self._cg_utils = CoinGeckoUtils()
-        self._miner_stats_df = self._miner_utils.get_miner_stats_df()
-        self._exchanges_df = self._cg_utils.get_all_exchanges_df()
-        self._trading_pairs_df = self._cg_utils.get_all_coins_df()
 
-    @property
-    def exchanges_df(self):
-        return self._exchanges_df
+    def __init__(self,
+                 miner_stats_df: pd.DataFrame,
+                 exchanges_df: pd.DataFrame,
+                 coins_df: pd.DataFrame,
+                 coins_tickers_df: pd.DataFrame):
+        self._miner_stats_df = miner_stats_df
+        self._exchanges_df = exchanges_df
+        self._coins_df = coins_df
+        self._coins_tickers_df = coins_tickers_df
 
     def get_miner_exchanges_id_list(self):
         miner_exchanges = self._miner_stats_df["coingecko_id"].unique().tolist()
@@ -34,8 +33,16 @@ class DataProvider:
     def get_trading_pairs_filtered_by_miner(self):
         return self._exchanges_df[self._exchanges_df["trading_pairs"].isin(self.get_trading_pairs_filtered_by_miner())]
 
-    def get_volume_spreads_df_by_exchange_list(self, exchange: list):
-        exchanges_markets_info = self._cg_utils.get_exchanges_markets_info_by_list(exchange)
-        volume_spread_df = exchanges_markets_info[["base", "target", "volume", "bid_ask_spread_percentage", "exchange", "trading_pair"]].copy()
-        return volume_spread_df
+    # def get_top_exchanges_spreads_by_volume(self, top: int = 40):
+    #     dfs = []
+    #     exchanges = self._exchanges_df
+    #     top_exchanges_id = exchanges.loc[:top, "id"]
+    #     for exchange_id in top_exchanges_id:
+    #         df = pd.DataFrame(self.connector.get_exchanges_by_id(exchange_id)["tickers"])
+    #         dfs.append(df)
+    #     exchanges_spreads_df = pd.concat(dfs)
+    #     exchanges_spreads_df["exchange"] = exchanges_spreads_df["market"].apply(lambda x: re.sub("Exchange", "", x["name"]))
+    #     exchanges_spreads_df.drop(columns="market", inplace=True)
+    #     exchanges_spreads_df["trading_pair"] = exchanges_spreads_df.base + "-" + exchanges_spreads_df.target
+    #     return exchanges_spreads_df
 

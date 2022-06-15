@@ -21,7 +21,17 @@ class MinerUtils:
         return pd.Series(tmp, dtype=float)
 
     @staticmethod
-    def coingecko_id(exchange: str):
+    def exchange_coingecko_id(exchange: str):
+        converter = {
+            "kucoin": "kucoin",
+            "binance": "binance",
+            "gateio": "gate",
+            "ascendex": "bitmax"
+        }
+        return converter[exchange]
+
+    @staticmethod
+    def coin_coingecko_id(exchange: str):
         converter = {
             "kucoin": "kucoin",
             "binance": "binance",
@@ -58,15 +68,5 @@ class MinerUtils:
         df = pd.DataFrame(r)
         df = pd.concat([df, df.apply(lambda x: self.reward_splitter(x.base, x.weekly_reward), axis=1)], axis=1)
         df["trading_pair"] = df.apply(lambda x: x.base + "-" + x.quote, axis=1)
-        df["coingecko_id"] = df.apply(lambda x: self.coingecko_id(x.exchange), axis=1)
+        df["exchange_coingecko_id"] = df.apply(lambda x: self.exchange_coingecko_id(x.exchange), axis=1)
         return df
-
-    def get_miner_exchanges_list(self):
-        df = self.get_miner_stats_df()
-        return df["exchange"].unique().tolist()
-
-    def get_miner_trading_pairs_list(self):
-        df = self.get_miner_stats_df()
-        return df["trading_pair"].unique().tolist()
-
-
