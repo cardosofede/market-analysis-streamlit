@@ -30,16 +30,6 @@ class MinerUtils:
         }
         return converter[exchange]
 
-    @staticmethod
-    def coin_coingecko_id(exchange: str):
-        converter = {
-            "kucoin": "kucoin",
-            "binance": "binance",
-            "gateio": "gate",
-            "ascendex": "bitmax"
-        }
-        return converter[exchange]
-
     def get_miner_stats_df(self):
         miner_data = requests.get(self.MARKETS_ENDPOINT).json()
         spec = {
