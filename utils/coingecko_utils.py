@@ -19,7 +19,9 @@ class CoinGeckoUtils:
 
     def get_coin_tickers_by_id(self, coin_id: str):
         coin_tickers = self.connector.get_coin_ticker_by_id(id=coin_id)
-        return pd.DataFrame(coin_tickers["tickers"])
+        coin_tickers_df = pd.DataFrame(coin_tickers["tickers"])
+        coin_tickers_df["token_id"] = coin_id
+        return coin_tickers_df
 
     def get_coin_tickers_by_id_list(self, coins_id: list):
         dfs = []
