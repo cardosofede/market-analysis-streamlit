@@ -114,7 +114,7 @@ fig = px.scatter(
         'bid_ask_spread_percentage': 'Bid Ask Spread (%)'
     })
 
+st.write("# Data filters 🏷")
+st.code("🧳 New filters coming. Reach us on discord if you want to propose one!")
 st.plotly_chart(fig, use_container_width=True)
-st.sidebar.write("# Data filters 🏷")
-st.sidebar.code("🧳 New filters coming. \nReach us on discord if you want \nto propose one!")
 
